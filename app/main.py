@@ -1,33 +1,19 @@
 from fastapi import FastAPI
-from app.endpoints import (
-    customer_support,
-    menu,
-    issues,
-    feedback,
-    complaints,
-    reservations,
-    orders,
-)
+from app.endpoints import llmchain, restaurant, orders, bookings, customer_support
+from app.services.database import connect_db
 
-app = FastAPI(title="Restaurant Voice Agent")
+app = FastAPI(title="Voice Agent API")
 
-# Include routers with appropriate prefixes
-app.include_router(customer_support.router, prefix="/support", tags=["Customer Support"])
-app.include_router(menu.router, prefix="/menu", tags=["Menu"])
-app.include_router(issues.router, prefix="/issues", tags=["Issues"])
-app.include_router(feedback.router, prefix="/feedback", tags=["Feedback"])
-app.include_router(complaints.router, prefix="/complaints", tags=["Complaints"])
-app.include_router(reservations.router, prefix="/reservations", tags=["Reservations"])
-app.include_router(orders.router, prefix="/orders", tags=["Orders"])
+# Connect to MongoDB
+connect_db()
 
-# Optional: Dummy endpoint for microphone access
-@app.get("/mic", tags=["Microphone"])
-def microphone_access():
-    """
-    Dummy endpoint for microphone access integration.
-    """
-    return {"message": "Microphone access endpoint - integration pending."}
+# Include endpoints
+app.include_router(llmchain.router, prefix="/api/llm")
+app.include_router(restaurant.router, prefix="/api/restaurant")
+app.include_router(orders.router, prefix="/api/orders")
+app.include_router(bookings.router, prefix="/api/bookings")
+app.include_router(customer_support.router, prefix="/api/support")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
